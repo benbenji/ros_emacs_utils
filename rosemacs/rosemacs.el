@@ -387,13 +387,13 @@
             (cl-subseq word (1+ index)))
       word)))
 
-(setq topic-completor (dynamic-completion-table
+(setq topic-completor (completion-table-dynamic
                        (lambda (str) (rosemacs-bsearch str ros-all-topics))))
-(setq node-completor (dynamic-completion-table
+(setq node-completor (completion-table-dynamic
                       (lambda (str) (rosemacs-bsearch str rosemacs/nodes-vec))))
 (setq ros-package-completor 
       ;; Longer because it has to deal with the case of PACKAGE/PATH-PREFIX in addition to PACKAGE-PREFIX
-      (dynamic-completion-table 
+      (completion-table-dynamic
        (lambda (str) 
          (unless ros-packages (ros-load-package-locations))
          (cl-multiple-value-bind (package dir-prefix dir-suffix) (parse-ros-file-prefix str)
@@ -1452,9 +1452,9 @@ Prefix argument allows you to edit the rosrun command before executing it."
   (if (rosemacs/contains-running-process buf)
       (warn "Rosrun buffer %s already exists: not creating a new one." (buffer-name buf))
     (progn
-      (with-current-buffer buf 
+      (with-current-buffer buf
         (ros-run-mode 1)
-        (let ((proc 
+        (let ((proc
                (apply 'start-process (buffer-name buf) buf "rosrun"
                       ros-run-pkg ros-run-executable ros-run-args)))
           (set-process-filter proc 'comint-output-filter))) )
@@ -1541,8 +1541,7 @@ With prefix arg, allows editing rosmake command before starting."
                                         'roslaunch/history-list default-roslaunch-command)
                          default-roslaunch-command))))
                 (let ((buf (get-buffer-create name)))
-                  (save-excursion
-                    (set-buffer buf)
+                  (with-current-buffer buf
                     (comint-mode)
                     (setq ros-launch-cmd (car roslaunch-command)
                           ros-launch-args (cdr roslaunch-command))
@@ -1592,8 +1591,7 @@ With prefix arg, allows editing rosmake command before starting."
   (let ((proc (get-buffer-process buf)))
     (if (and proc (eq (process-status proc) 'run))
         (warn "Can't relaunch since process %s is still running" proc)
-      (save-excursion
-        (set-buffer buf)
+      (with-current-buffer buf
         (erase-buffer)
         (let ((proc
                (apply 'start-process
