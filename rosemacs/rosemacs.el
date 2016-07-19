@@ -897,8 +897,7 @@ parameter."
 
 (defun update-ros-node-buffer ()
   (let ((ros-node-buffer (get-buffer-create "*ros-nodes*")))
-    (save-excursion
-      (set-buffer ros-node-buffer)
+    (with-current-buffer ros-node-buffer
       (let ((old-stamp (rosemacs/get-stamp-string)))
         (erase-buffer)
         (princ (format "Master uri: %s\n" (getenv "ROS_MASTER_URI")) ros-node-buffer)
@@ -906,7 +905,7 @@ parameter."
         (let ((time-stamp-pattern "5/^Last updated: <%02H:%02M:%02S")) (time-stamp))
         (princ "\n\n" ros-node-buffer)
         (dolist (n rosemacs/nodes)
-          (princ (format "%s\n" n) ros-node-buffer))))))
+          (princ (format "%s\n" n) ros-node-buffer))) )))
 
 
 (defun rosemacs/display-nodes (&optional other-window)
@@ -1453,14 +1452,13 @@ Prefix argument allows you to edit the rosrun command before executing it."
   (if (rosemacs/contains-running-process buf)
       (warn "Rosrun buffer %s already exists: not creating a new one." (buffer-name buf))
     (progn
-      (save-excursion
-        (set-buffer buf)
+      (with-current-buffer buf 
         (ros-run-mode 1)
         (let ((proc 
                (apply 'start-process (buffer-name buf) buf "rosrun"
                       ros-run-pkg ros-run-executable ros-run-args)))
-          (set-process-filter proc 'comint-output-filter)))
-      (switch-to-buffer buf))))
+          (set-process-filter proc 'comint-output-filter))) )
+      (switch-to-buffer buf)))
 
 (defun rosrun/restart-current ()
   (interactive)
